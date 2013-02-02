@@ -1,0 +1,29 @@
+html, body {
+  height: 100%;
+}
+
+body > div {
+  -webkit-column-width: 300px;
+  -moz-column-width: 300px;
+  -o-column-width: 300px;
+  -ms-column-width: 300px;
+  column-width: 300px;
+
+  -webkit-column-gap: 0;
+  -moz-column-gap: 0;
+  -o-column-gap: 0;
+  -ms-column-gap: 0;
+  column-gap: 0;
+}
+
+a {
+  color: #00B7FF;
+}
+
+img {
+  width: 100%;
+  height: auto;
+
+  display: block;
+}
+
