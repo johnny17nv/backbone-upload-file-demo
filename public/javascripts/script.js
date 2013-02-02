@@ -9,8 +9,8 @@ var ItemView = Backbone.View.extend({
 
   render : function(){
     if(this.model){
-      this.el.src = 'images/' + this.model.get('name');
-      this.el.title = this.model.get('name');
+      this.el.src = 'statics/' + this.model.get('filename');
+      this.el.title = this.model.get('filename');
     }
 
     return this;

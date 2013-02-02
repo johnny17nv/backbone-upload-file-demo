@@ -1,28 +1,60 @@
-var path = require('path')
-  , fs = require('fs');
+var path = require('path'),
+    fs = require('fs'),
+    gridform = require('gridform');
+
+var mongo = require('mongodb'),
+    commons = require('../commons.js');
+    db = commons.mongo.db,
+    gfs = commons.mongo.gfs;
+
+
+var gm = require('gm');
+
+gridform.db = db;
+gridform.mongo = mongo;
 
 exports.index = function(req, res){
   res.render('index');
 };
 
 exports.post = function(req, res){
-  if(req.files.hasOwnProperty('file')){
-    var file = req.files.file;
-    res.send({
-      name: path.basename(file.path)
+  var form = gridform();
+
+  form.on('fileBegin', function (name, file) {
+    file.metadata = {
+      name : file.name
+    };
+  });
+
+  form.parse(req, function (err, fields, files) {
+    if(err) res.end(500);
+    else res.json({
+      filename : files.file.id
     });
-  }
-  else res.end(500);
+  });
 };
 
 exports.get = function(req, res){
-  fs.readdir('public/images', function(err, files){
-    if (err) return res.end(500); 
-
-    res.send(files.map(function(file){
-      return {
-        name : file
-      };
-    }));
+  db.collection('fs.files', function(err, collection){
+    if (err) res.send(500);
+    collection.find({}, function(err, cursor){
+      var array = [];
+      cursor.toArray(function(err, items){
+        res.json(items.map(function(item){
+          return {
+            filename : item._id
+          };
+        }));
+      });
+    });
   });
+};
+
+var resize = require('../resize.js');
+
+exports.getFile = function(req, res){
+  var readstream = gfs.createReadStream(req.param('fileid'));
+  
+  resize.cropImage(readstream).pipe(res);
+  //readstream.pipe(res);
 };

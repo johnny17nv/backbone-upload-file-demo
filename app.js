@@ -1,8 +1,9 @@
-var express = require('express')
-  , routes = require('./routes')
-  , user = require('./routes/user')
-  , http = require('http')
-  , path = require('path');
+var express = require('express'),
+    routes = require('./routes'),
+    http = require('http'),
+    path = require('path');
+
+var commons = require('./commons');
 
 var app = express();
 
@@ -12,13 +13,10 @@ app.configure(function(){
   app.set('view engine', 'jade');
   app.use(express.favicon());
   app.use(express.logger('dev'));
-  app.use(express.bodyParser({
-    keepExtensions: true,
-    uploadDir: './public/images'
-  }));
+  //app.use(form);
   app.use(express.methodOverride());
   app.use(app.router);
-  app.use(express.static(path.join(__dirname, 'public')));
+  app.use(express['static'](path.join(__dirname, 'public')));
 });
 
 app.configure('development', function(){
@@ -28,15 +26,19 @@ app.configure('development', function(){
 app.get('/', routes.index);
 app.post('/images', routes.post);
 app.get('/images', routes.get);
+app.get('/statics/:fileid', routes.getFile);
 
-var server = http.createServer(app).listen(app.get('port'), function(){
-  console.log('Express server listening on port ' + app.get('port'));
-  console.log('Press [ENTER] to close server');
+var server = http.createServer(app);
 
-  process.stdin.resume();
-  process.stdin.on('data', function(){
-    process.stdin.pause();
-    server.close();
+commons.mongo.db.open(function(){
+  server.listen(app.get('port'), function(){
+    console.log('Express server listening on port ' + app.get('port'));
+    console.log('Press [ENTER] to close server');
+
+    process.stdin.resume();
+    process.stdin.on('data', function(){
+      process.stdin.pause();
+      server.close();
+    });
   });
 });
-
