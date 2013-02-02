@@ -39,6 +39,7 @@ exports.get = function(req, res){
     if (err) res.send(500);
     collection.find({}, function(err, cursor){
       var array = [];
+      cursor.sort({uploadDate:-1}).limit(300);
       cursor.toArray(function(err, items){
         res.json(items.map(function(item){
           return {
@@ -54,7 +55,6 @@ var resize = require('../resize.js');
 
 exports.getFile = function(req, res){
   var readstream = gfs.createReadStream(req.param('fileid'));
-  
-  resize.cropImage(readstream).pipe(res);
-  //readstream.pipe(res);
+  if(req.param('preview')) resize.cropImage(readstream).pipe(res);
+  else readstream.pipe(res);
 };

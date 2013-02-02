@@ -9,5 +9,5 @@ module.exports = {
     server : mongoServer,
     db : mongoDb,
     gfs : mongoGridFS
-  } 
+  }
 };

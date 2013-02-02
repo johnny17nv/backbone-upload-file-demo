@@ -1,16 +1,25 @@
 var forEach  = Array.prototype.forEach;
 
 var ItemView = Backbone.View.extend({
-  tagName : 'img',
+  tagName : 'a',
 
   initialize : function(){
+    this.img = document.createElement('img');
+    this.$img = $(this.img);
+
+    this.$el.html(this.$img);
+
     this.render();
   },
 
   render : function(){
     if(this.model){
-      this.el.src = 'statics/' + this.model.get('filename');
-      this.el.title = this.model.get('filename');
+      this.img.src = 'statics/' + this.model.get('filename') + '?preview=true';
+      this.img.title = this.model.get('filename');
+
+
+      this.el.href = 'statics/' + this.model.get('filename');
+      this.el.alt = this.model.get('filename');
     }
 
     return this;
@@ -67,7 +76,7 @@ var View = Backbone.View.extend({
           processData: false,
           type: 'POST',
           success: function(data){
-            collection.add(data);
+            collection.unshift(data);
           }
         }, 'json');
       };
@@ -75,12 +84,11 @@ var View = Backbone.View.extend({
   },
 
   addItem : function(model){
-    this.$content.append(new ItemView({
+    var toadd = new ItemView({
       model : model
-    }).$el);
-    console.log(new ItemView({
-      model : model
-    }).$el);
+    }).$el;
+    if(this.collection.indexOf(model) === 0) this.$content.prepend(toadd);
+    else  this.$content.append(toadd);
   },
 
   render : function(){
