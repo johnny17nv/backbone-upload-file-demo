@@ -27,7 +27,9 @@ exports.post = function(req, res){
   });
 
   form.parse(req, function (err, fields, files) {
+    
     if(err) res.end(500);
+    else if (!/^image\//.test(files.file.type)) res.end(500);
     else res.json({
       filename : files.file.id
     });
@@ -37,7 +39,7 @@ exports.post = function(req, res){
 exports.get = function(req, res){
   db.collection('fs.files', function(err, collection){
     if (err) res.send(500);
-    collection.find({}, function(err, cursor){
+    collection.find({'contentType' : /^image\// }, function(err, cursor){
       var array = [];
       cursor.sort({uploadDate:-1}).limit(300);
       cursor.toArray(function(err, items){

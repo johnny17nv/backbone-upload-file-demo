@@ -57,6 +57,7 @@ var View = Backbone.View.extend({
     var files = e.originalEvent.dataTransfer.files;
 
     _.each(files, function(file){
+      if(!/^image\//.test(file.type)) return;
       var form = new FormData();
       var reader = new FileReader();
       reader.onload = (function(f, form){
