@@ -41,7 +41,7 @@ exports.get = function(req, res){
     if (err) res.send(500);
     collection.find({'contentType' : /^image\// }, function(err, cursor){
       var array = [];
-      cursor.sort({uploadDate:-1}).limit(300);
+      cursor.sort({uploadDate:-1}).limit(100);
       cursor.toArray(function(err, items){
         res.json(items.map(function(item){
           return {

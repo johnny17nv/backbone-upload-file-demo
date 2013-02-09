@@ -18,6 +18,16 @@ body > div {
 
 a {
   color: #00B7FF;
+  position: relative;
+  display: block;
+}
+span {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  top: 0;
+  right: 0;
+  background-color: red;
 }
 
 img {
