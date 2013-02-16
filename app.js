@@ -1,11 +1,14 @@
 var express = require('express'),
     routes = require('./routes'),
     http = require('http'),
-    path = require('path');
+    path = require('path'),
+    mongo = require('mongodb');
 
-var commons = require('./commons');
+var server = new mongo.Server('localhost', mongo.Connection.DEFAULT_PORT, { auto_reconnect : true, poolSize : 8 }),
+    db = new mongo.Db('gridFS', server, { safe : false });
 
 var app = express();
+var multipart = require('connect-multipart-gridform');
 
 app.configure(function(){
   app.set('port', process.env.PORT || 3000);
@@ -14,8 +17,12 @@ app.configure(function(){
   app.use(express.favicon());
   app.use(express.logger('dev'));
   app.use(express.methodOverride());
-  app.use(app.router);
   app.use(express['static'](path.join(__dirname, 'public')));
+  app.use(function(req, res, next){
+    req.db = db;
+    next();
+  });
+  app.use(app.router);
 });
 
 app.configure('development', function(){
@@ -23,21 +30,19 @@ app.configure('development', function(){
 });
 
 app.get('/', routes.index);
-app.post('/images', routes.post);
+app.post('/images',multipart({
+    db : db,
+    mongo : mongo,
+    defer : true
+  }), routes.post);
 app.get('/images', routes.get);
-app.get('/statics/:fileid', routes.getFile);
+app.all('/statics/images/:fileid', function(req, res, next){
+  req.gridFS = multipart.gridform.gridfsStream(db, mongo);
+  next();
+} ,routes.getFile);
 
 var server = http.createServer(app);
 
-commons.mongo.db.open(function(){
-  server.listen(app.get('port'), function(){
-    console.log('Express server listening on port ' + app.get('port'));
-    console.log('Press [ENTER] to close server');
-
-    process.stdin.resume();
-    process.stdin.on('data', function(){
-      process.stdin.pause();
-      server.close();
-    });
-  });
+server.listen(app.get('port'), function(){
+  console.log('Express server listening on port ' + app.get('port'));
 });

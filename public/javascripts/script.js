@@ -1,6 +1,6 @@
 var forEach  = Array.prototype.forEach;
 
-var ItemView = Backbone.View.extend({
+var ImageView = Backbone.View.extend({
   tagName : 'a',
 
   initialize : function(){
@@ -19,7 +19,7 @@ var ItemView = Backbone.View.extend({
   },
 
   renderSRC : function(){
-    var src = (this.model.get('filename'))? 'statics/'+this.model.get('filename') : window.URL.createObjectURL(this.model.get('file'));
+    var src = (this.model.get('filename'))? 'statics/images/'+this.model.get('filename') : window.URL.createObjectURL(this.model.get('file'));
 
     this.img.src = (this.model.get('filename'))? src + '?preview=true': src ;
 
@@ -34,6 +34,98 @@ var ItemView = Backbone.View.extend({
   },
 
   render : function(){
+    this.renderSRC();
+    this.renderLoading();
+    return this;
+  }
+});
+
+var AudioView = Backbone.View.extend({
+  tagName : 'a',
+
+  initialize : function(){
+    this.audio = document.createElement('audio');
+    this.$audio = $(this.audio);
+    this.$el.append(this.$audio);
+
+    this.audio.controls = "controls";
+
+    this.loading = document.createElement('span');
+    this.$loading = $(this.loading);
+    this.$el.append(this.$loading);
+
+    this.model.on('change:filename', this.renderSRC, this);
+    this.model.on('change:loading', this.renderLoading, this);
+
+    this.render();
+  },
+
+  renderSRC : function(){
+    var src = (this.model.get('filename'))? 'statics/images/'+this.model.get('filename') : window.URL.createObjectURL(this.model.get('file'));
+
+    var source = document.createElement('source');
+
+    source.src = src;
+    source.type = this.model.get('type');
+
+    this.$audio.append(source);
+
+  },
+
+  renderLoading : function(){
+    if(this.model.get('loading') === 100) this.$loading.remove();
+    else this.$loading.width((100-this.model.get('loading')) + '%');
+  },
+
+  render : function(){
+    this.$audio.empty();
+    this.audio.innerHTML = 'Your browser does not support the <code>audio</code> element.';
+    this.renderSRC();
+    this.renderLoading();
+    return this;
+  }
+});
+
+var VideoView = Backbone.View.extend({
+  tagName : 'a',
+
+  initialize : function(){
+    this.video = document.createElement('video');
+    this.$video = $(this.video);
+    this.$el.append(this.$video);
+
+    this.video.controls = "controls";
+
+    this.loading = document.createElement('span');
+    this.$loading = $(this.loading);
+    this.$el.append(this.$loading);
+
+    this.model.on('change:filename', this.renderSRC, this);
+    this.model.on('change:loading', this.renderLoading, this);
+
+    this.render();
+  },
+
+  renderSRC : function(){
+    var src = (this.model.get('filename'))? 'statics/images/'+this.model.get('filename') : window.URL.createObjectURL(this.model.get('file'));
+
+    var source = document.createElement('source');
+
+    source.src = src;
+    source.type = this.model.get('type');
+
+    this.$video.append(source);
+
+  },
+
+  renderLoading : function(){
+    if(this.model.get('loading') === 100) this.$loading.remove();
+    else this.$loading.width((100-this.model.get('loading')) + '%');
+  },
+
+  render : function(){
+    this.$video.empty();
+    this.video.innerHTML = 'Your browser does not support the <code>video</code> element.';
     this.renderSRC();
     this.renderLoading();
     return this;
@@ -67,11 +159,10 @@ var View = Backbone.View.extend({
     e.preventDefault();
 
     var collection = this.collection;
-
     var files = e.originalEvent.dataTransfer.files;
 
     _.each(files, function(file){
-      if(!/^image\//.test(file.type)) return;
+      if(!/^image\//.test(file.type) && !/^audio\//.test(file.type) && !/^video\//.test(file.type)) return;
       var form = new FormData();
       var reader = new FileReader();
       reader.onload = (function(f, form){
@@ -82,9 +173,9 @@ var View = Backbone.View.extend({
 
       reader.readAsDataURL(file);
 
-
       data = {
         file : file,
+        type : file.type,
         filename : '',
         loading : 0
       };
@@ -113,7 +204,6 @@ var View = Backbone.View.extend({
       };
       function progressHandler(evt) {
         if (evt.lengthComputable) {
-          console.log(evt.loaded, evt.total);
           var percent_done = parseInt(100.0 * evt.loaded / evt.total, 10);
           model.set('loading', percent_done);
         }
@@ -122,11 +212,17 @@ var View = Backbone.View.extend({
   },
 
   addItem : function(model){
-    var toadd = new ItemView({
+    var toadd = (/^image\//.test(model.get('type'))) ? new ImageView({
       model : model
-    }).$el;
-    if(this.collection.indexOf(model) === 0) this.$content.prepend(toadd);
-    else  this.$content.append(toadd);
+    }).$el : (/^audio\//.test(model.get('type'))) ? new AudioView({
+      model : model
+    }).$el : (/^video\//.test(model.get('type'))) ? new VideoView({
+      model : model
+    }).$el : null;
+    if(toadd !== null){
+      if(this.collection.indexOf(model) === 0) this.$content.prepend(toadd);
+      else  this.$content.append(toadd);
+    }
   },
 
   render : function(){

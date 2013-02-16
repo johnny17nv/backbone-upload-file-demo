@@ -11,9 +11,9 @@
     "express": "*",
     "jade": "*",
     "mongodb": "*",
-    "gridfs-stream": "~0.3.2",
-    "gridform": "~0.1.5",
-    "gm": "~1.8.1"
+    "gm": "*",
+    "connect-multipart-gridform": "*",
+    "vorbis": "*"
   },
   "description": "",
   "main": "app.js",
