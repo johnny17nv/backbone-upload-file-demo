@@ -12,8 +12,7 @@
     "jade": "*",
     "mongodb": "*",
     "gm": "*",
-    "connect-multipart-gridform": "*",
-    "vorbis": "*"
+    "connect-multipart-gridform": "*"
   },
   "description": "",
   "main": "app.js",
